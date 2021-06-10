@@ -1,3 +1,5 @@
+mod chapter_1;
+
 #[cfg(test)]
 mod tests {
     #[test]
