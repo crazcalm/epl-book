@@ -86,22 +86,17 @@ pub fn get_index<T>(list: &List<T>, index: u32) -> Option<&List<T>> {
 }
 
 #[allow(dead_code)]
-pub fn remove_first<T: PartialEq + Clone + std::fmt::Debug>(
-    list: List<T>,
-    target: T,
-) -> Option<List<T>> {
-    println!("list: {:?}, target: {:?}", &list, &target);
-
-    if in_list(&list, target.clone()) {
+pub fn remove_first<T: PartialEq + Clone>(list: &List<T>, target: T) -> Option<List<T>> {
+    if in_list(list, target.clone()) {
         match list {
             List::Nil => None,
             List::Cons(car, cdr) => {
-                if car == target {
-                    Some(*cdr)
+                if *car == target {
+                    Some(*cdr.clone())
                 } else {
                     Some(List::Cons(
                         car.clone(),
-                        Box::new(remove_first(*cdr, target).unwrap()),
+                        Box::new(remove_first(cdr, target).unwrap()),
                     ))
                 }
             }
@@ -111,9 +106,39 @@ pub fn remove_first<T: PartialEq + Clone + std::fmt::Debug>(
     }
 }
 
+#[allow(dead_code)]
+pub fn remove_all<T: PartialEq + Clone>(list: List<T>, target: T) -> List<T> {
+    match remove_first(&list, target.clone()) {
+        None => list,
+        Some(item) => remove_all(item, target),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_remove_all() {
+        let mut list: List<u32> = List::Cons(
+            1,
+            Box::new(List::Cons(
+                2,
+                Box::new(List::Cons(
+                    1,
+                    Box::new(List::Cons(4, Box::new(List::Cons(1, Box::new(List::Nil))))),
+                )),
+            )),
+        );
+
+        // Happy path
+        list = remove_all(list, 1);
+        assert_eq!(length(&list), 2);
+
+        // Less Happy path
+        list = remove_all(list, 8);
+        assert_eq!(length(&list), 2);
+    }
 
     #[test]
     fn test_remove_first() {
@@ -128,13 +153,13 @@ mod tests {
             )),
         );
 
-        let result = remove_first(list.clone(), 4).unwrap();
+        let result = remove_first(&list, 4).unwrap();
         assert_eq!(length(&result), 4, "{:?}", result);
 
-        let result = remove_first(list.clone(), 1).unwrap();
+        let result = remove_first(&list, 1).unwrap();
         assert_eq!(length(&result), 4, "{:?}", result);
 
-        let result = remove_first(list.clone(), 8);
+        let result = remove_first(&list, 8);
         assert_eq!(result.is_none(), true);
     }
 
