@@ -86,6 +86,31 @@ pub fn get_index<T>(list: &List<T>, index: u32) -> Option<&List<T>> {
 }
 
 #[allow(dead_code)]
+pub fn count<T: PartialEq + Clone>(list: &List<T>, target: T) -> usize {
+    match list {
+        List::Nil => 0,
+        List::Cons(car, cdr) => match *car == target {
+            true => 1 + count(cdr, target),
+            false => 0 + count(cdr, target),
+        },
+    }
+}
+
+#[allow(dead_code)]
+pub fn subst<T: PartialEq + Clone>(list: &List<T>, new: T, old: T) -> List<T> {
+    match list {
+        List::Nil => List::Nil,
+        List::Cons(car, cdr) => {
+            if *car == old {
+                List::Cons(new.clone(), Box::new(subst(cdr, new, old)))
+            } else {
+                List::Cons(car.clone(), Box::new(subst(cdr, new, old)))
+            }
+        }
+    }
+}
+
+#[allow(dead_code)]
 pub fn remove_first<T: PartialEq + Clone>(list: &List<T>, target: T) -> Option<List<T>> {
     if in_list(list, target.clone()) {
         match list {
@@ -117,6 +142,39 @@ pub fn remove_all<T: PartialEq + Clone>(list: List<T>, target: T) -> List<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_count() {
+        let list: List<u32> = List::Cons(
+            1,
+            Box::new(List::Cons(
+                2,
+                Box::new(List::Cons(
+                    1,
+                    Box::new(List::Cons(4, Box::new(List::Cons(1, Box::new(List::Nil))))),
+                )),
+            )),
+        );
+
+        assert_eq!(count(&list, 1), 3);
+    }
+
+    #[test]
+    fn test_subst() {
+        let mut list: List<u32> = List::Cons(
+            1,
+            Box::new(List::Cons(
+                2,
+                Box::new(List::Cons(
+                    1,
+                    Box::new(List::Cons(4, Box::new(List::Cons(1, Box::new(List::Nil))))),
+                )),
+            )),
+        );
+
+        list = subst(&list, 7, 1);
+        assert_eq!(count(&list, 7), 3);
+    }
 
     #[test]
     fn test_remove_all() {
