@@ -1,4 +1,72 @@
 #[allow(dead_code)]
+pub fn inverse<T: Clone>(list: &[&[T]]) -> Vec<Vec<T>> {
+    match list.len() {
+        0 => vec![vec![]],
+        1 => vec![reverse(list[0])],
+        _ => {
+            let mut result = vec![reverse(list[0].clone())];
+            result.extend_from_slice(&inverse(&list[1..]));
+            result
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub fn down<T: Clone>(list: &[T]) -> Vec<Vec<T>> {
+    match list.len() {
+        0 => panic!("List cannot be empty"),
+        1 => vec![vec![list[0].clone()]],
+        _ => {
+            let mut result = vec![vec![list[0].clone()]];
+            result.extend_from_slice(&down(&list[1..]));
+            result
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub fn reverse<T: Clone>(list: &[T]) -> Vec<T> {
+    match list.len() {
+        0 => vec![],
+        1 => vec![list[0].clone()],
+        _ => {
+            let mut result = vec![list[list.len() - 1].clone()];
+            let index = list.len() - 1;
+            result.extend_from_slice(&reverse(&list[..index]));
+            result
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub fn duple<T: Clone>(list: &[T], num: u32) -> Vec<T> {
+    match list.len() {
+        0 => vec![],
+        1 => copy(list[0].clone(), num),
+        _ => {
+            let mut result = vec![];
+            result.extend_from_slice(&copy(list[0].clone(), num));
+            result.extend_from_slice(&duple(&list[1..], num));
+            result
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub fn copy<T: Clone>(item: T, num: u32) -> Vec<T> {
+    match num {
+        0 | 1 => {
+            vec![item]
+        }
+        _ => {
+            let mut result = vec![item.clone()];
+            result.extend_from_slice(&copy(item, num - 1).clone());
+            result
+        }
+    }
+}
+
+#[allow(dead_code)]
 fn list_length<T>(args: &[T]) -> u32 {
     match args.is_empty() {
         true => 0,
@@ -87,6 +155,54 @@ fn in_list<T: Clone + PartialEq>(arg: &[T], target: T) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::cons;
+
+    #[test]
+    fn test_down() {
+        let list = vec![1, 2, 3];
+
+        let result = down(&list[..]);
+        assert_eq!(result, vec![vec![1], vec![2], vec![3]]);
+    }
+
+    #[test]
+    fn test_inverse() {
+        let one = vec![1, 2, 3];
+        let two = vec![9];
+        let three = vec![3, 4];
+
+        let list = vec![one.as_slice(), two.as_slice(), three.as_slice()];
+
+        let result = inverse(list.as_slice());
+        assert_eq!(result, vec![vec![3, 2, 1], vec![9], vec![4, 3]]);
+    }
+
+    #[test]
+    fn test_reverse() {
+        let list = vec![1, 2, 3, 4, 5];
+
+        let result = reverse(&list[..]);
+        assert_eq!(result, vec![5, 4, 3, 2, 1]);
+    }
+
+    #[test]
+    fn test_duple() {
+        let list = vec![1, 2, 3, 4];
+
+        let result = duple(&list[..], 2);
+        assert_eq!(result, vec![1, 1, 2, 2, 3, 3, 4, 4]);
+    }
+
+    #[test]
+    fn test_copy() {
+        let list: cons::List<u32> = cons::List::Cons(1, Box::new(cons::List::Nil));
+
+        let result = copy(list.clone(), 3);
+        assert_eq!(result.len(), 3);
+
+        let result2 = copy(list.clone(), 0);
+        assert_eq!(result2.len(), 1);
+    }
 
     #[test]
     fn test_find_index() {
