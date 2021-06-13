@@ -1,6 +1,58 @@
 use crate::cons;
 
 #[allow(dead_code)]
+pub fn product<T: Clone>(list_1: &[T], list_2: &[T]) -> Option<Vec<Vec<T>>> {
+    match list_1.is_empty() || list_2.is_empty() {
+        true => None,
+        false => match list_1.is_empty() {
+            true => None,
+            false => {
+                let mut result: Vec<Vec<T>> = Vec::new();
+
+                if let Some(item) = span(&list_2[..], list_1[0].clone()) {
+                    result.extend_from_slice(&item);
+                }
+
+                if let Some(item) = product(&list_1[1..], list_2) {
+                    result.extend_from_slice(&item);
+                }
+
+                Some(result)
+            }
+        },
+    }
+}
+
+#[allow(dead_code)]
+pub fn span<T: Clone>(list: &[T], value: T) -> Option<Vec<Vec<T>>> {
+    match list.is_empty() {
+        true => None,
+        false => {
+            let mut result = vec![vec![value.clone(), list[0].clone()]];
+
+            if let Some(item) = span(&list[1..], value.clone()) {
+                result.extend_from_slice(&item);
+            }
+            Some(result)
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub fn count_occurrences<T: PartialEq + Clone>(list: &[cons::List<T>], target: T) -> usize {
+    match list.is_empty() {
+        true => 0,
+        false => match cons::in_list(&list[0], target.clone()) {
+            true => {
+                cons::count(&list[0], target.clone())
+                    + count_occurrences(&list[1..], target.clone())
+            }
+            false => 0 + count_occurrences(&list[1..], target.clone()),
+        },
+    }
+}
+
+#[allow(dead_code)]
 pub fn list_set<T: Clone>(
     list_1: &[cons::List<T>],
     index: usize,
@@ -188,6 +240,67 @@ fn in_list<T: Clone + PartialEq>(arg: &[T], target: T) -> bool {
 mod tests {
     use super::*;
     use crate::cons;
+
+    #[test]
+    fn test_product() {
+        let list_1 = vec![1, 2, 3];
+        let list_2 = vec![4, 5, 6];
+
+        let result = product(&list_1[..], &list_2[..]);
+
+        assert_eq!(
+            result,
+            Some(vec![
+                vec![1, 4],
+                vec![1, 5],
+                vec![1, 6],
+                vec![2, 4],
+                vec![2, 5],
+                vec![2, 6],
+                vec![3, 4],
+                vec![3, 5],
+                vec![3, 6]
+            ])
+        );
+    }
+
+    #[test]
+    fn test_span() {
+        let list = vec![1, 2, 3, 4];
+
+        let result = span(&list[..], 5);
+
+        assert_eq!(
+            result,
+            Some(vec![vec![5, 1], vec![5, 2], vec![5, 3], vec![5, 4]])
+        );
+    }
+
+    #[test]
+    fn test_count_occurrences() {
+        let list_a = cons::List::Cons(
+            "a",
+            Box::new(cons::List::Cons("b", Box::new(cons::List::Nil))),
+        );
+        let list_b = cons::List::Cons("b", Box::new(cons::List::Nil));
+        let list_c = cons::List::Cons(
+            "c",
+            Box::new(cons::List::Cons("b", Box::new(cons::List::Nil))),
+        );
+        let list_d = cons::List::Cons(
+            "d",
+            Box::new(cons::List::Cons(
+                "e",
+                Box::new(cons::List::Cons("d", Box::new(cons::List::Nil))),
+            )),
+        );
+
+        let list = vec![list_a, list_b, list_c, list_d];
+
+        assert_eq!(count_occurrences(&list[..], "b"), 3);
+        assert_eq!(count_occurrences(&list[..], "e"), 1);
+        assert_eq!(count_occurrences(&list[..], "d"), 2);
+    }
 
     #[test]
     fn test_list_set() {
