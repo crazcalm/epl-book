@@ -1,3 +1,35 @@
+use crate::cons;
+
+#[allow(dead_code)]
+pub fn list_set<T: Clone>(
+    list_1: &[cons::List<T>],
+    index: usize,
+    list_2: cons::List<T>,
+) -> Vec<cons::List<T>> {
+    if list_1.is_empty() {
+        vec![]
+    } else {
+        match index {
+            0 => {
+                let mut result = vec![list_2];
+
+                match list_1.len() {
+                    0 | 1 => result,
+                    _ => {
+                        result.extend_from_slice(&list_1[1..]);
+                        result
+                    }
+                }
+            }
+            _ => {
+                let mut result = vec![list_1[0].clone()];
+                result.extend_from_slice(&list_set(&list_1[1..], index - 1, list_2));
+                result
+            }
+        }
+    }
+}
+
 #[allow(dead_code)]
 pub fn inverse<T: Clone>(list: &[&[T]]) -> Vec<Vec<T>> {
     match list.len() {
@@ -156,6 +188,23 @@ fn in_list<T: Clone + PartialEq>(arg: &[T], target: T) -> bool {
 mod tests {
     use super::*;
     use crate::cons;
+
+    #[test]
+    fn test_list_set() {
+        let list_a = cons::List::Cons("a", Box::new(cons::List::Nil));
+        let list_b = cons::List::Cons("b", Box::new(cons::List::Nil));
+        let list_c = cons::List::Cons("c", Box::new(cons::List::Nil));
+        let list_d = cons::List::Cons(
+            "d",
+            Box::new(cons::List::Cons("e", Box::new(cons::List::Nil))),
+        );
+
+        let list = vec![list_a, list_b, list_c];
+        let result = list_set(&list, 1, list_d);
+
+        assert_eq!(result[1].car(), Some("d"), "{:?}", &result);
+        assert_eq!(result[2].car(), Some("c"));
+    }
 
     #[test]
     fn test_down() {

@@ -111,6 +111,22 @@ pub fn subst<T: PartialEq + Clone>(list: &List<T>, new: T, old: T) -> List<T> {
 }
 
 #[allow(dead_code)]
+pub fn swapper<T: PartialEq + Clone>(list: &List<T>, sub_1: T, sub_2: T) -> List<T> {
+    match list {
+        List::Nil => List::Nil,
+        List::Cons(car, cdr) => {
+            if *car == sub_1 {
+                List::Cons(sub_2.clone(), Box::new(swapper(cdr, sub_1, sub_2)))
+            } else if *car == sub_2 {
+                List::Cons(sub_1.clone(), Box::new(swapper(cdr, sub_1, sub_2)))
+            } else {
+                List::Cons(car.clone(), Box::new(swapper(cdr, sub_1, sub_2)))
+            }
+        }
+    }
+}
+
+#[allow(dead_code)]
 pub fn remove_first<T: PartialEq + Clone>(list: &List<T>, target: T) -> Option<List<T>> {
     if in_list(list, target.clone()) {
         match list {
@@ -142,6 +158,24 @@ pub fn remove_all<T: PartialEq + Clone>(list: List<T>, target: T) -> List<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_swapper() {
+        let list: List<u32> = List::Cons(
+            1,
+            Box::new(List::Cons(
+                2,
+                Box::new(List::Cons(
+                    1,
+                    Box::new(List::Cons(4, Box::new(List::Cons(1, Box::new(List::Nil))))),
+                )),
+            )),
+        );
+
+        let result = swapper(&list, 1, 2);
+        assert_eq!(count(&result, 1), 1, "{:?}", &result);
+        assert_eq!(count(&result, 2), 3);
+    }
 
     #[test]
     fn test_count() {
