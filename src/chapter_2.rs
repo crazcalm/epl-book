@@ -45,12 +45,16 @@ impl BigInt {
     pub fn value(&self) -> u32 {
         self.powers
             .iter()
+            .rev()
             .enumerate()
             .map(|(index, num)| {
                 if index == 0 {
                     num.clone()
+                } else if index == 1 {
+                    num.clone() * self.base
                 } else {
-                    (1..index as usize).fold(0, |sum, _| sum + self.base)
+                    let power = (1..=index as usize).fold(1, |sum, _| sum * self.base);
+                    num.clone() * power
                 }
             })
             .fold(0, |sum, i| sum + i)
@@ -61,30 +65,41 @@ impl Number for BigInt {
     fn zero(&self) -> Self {
         BigInt {
             base: 0,
-            powers: vec![],
+            powers: vec![0],
         }
     }
 
     fn is_zero(&self) -> bool {
-        self.powers.is_empty()
+        self.powers.is_empty() || self.powers == vec![0]
     }
 
     fn successor(&self) -> Self {
         match self.powers.is_empty() {
             true => BigInt {
                 base: self.base.clone(),
-                powers: vec![],
+                powers: vec![0],
             },
             false => {
-                let mut new_powers = Vec::with_capacity(self.powers.len() + 1);
+                let mut new_powers = self.powers.clone();
 
                 for (index, num) in self.powers.iter().rev().enumerate() {
                     if num + 1 < self.base {
-                        new_powers.insert(new_powers.len() - index - 1, num + 1)
+                        new_powers[self.powers.len() - index - 1] = num + 1;
+                        break;
                     } else {
-                        new_powers.insert(new_powers.len() - index - 1, 0);
-                        new_powers.insert(new_powers.len() - index - 2, 1)
+                        new_powers[self.powers.len() - index - 1] = 0;
+
+                        if self.powers.len() > index + 1 {
+                            new_powers[self.powers.len() - index - 2] = num + 1
+                        } else {
+                            new_powers.insert(0, 1);
+                        }
                     }
+                }
+
+                // Get rid of extra powers
+                if new_powers.len() > 1 && new_powers[0] == 0 {
+                    let _ = new_powers.remove(0);
                 }
 
                 BigInt {
@@ -125,6 +140,59 @@ impl Number for BigInt {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_bigint_is_zero() {
+        let big_int = BigInt {
+            base: 10,
+            powers: vec![0],
+        };
+
+        assert_eq!(big_int.is_zero(), true);
+    }
+
+    #[test]
+    fn test_bigint_successor() {
+        let mut big_int = BigInt {
+            base: 10,
+            powers: vec![0],
+        };
+
+        for num in 1..300 {
+            big_int = big_int.successor();
+            let value = big_int.value();
+            println!(
+                "value: {}, num: {}, powers: {:?}",
+                &value, &num, &big_int.powers
+            );
+
+            assert_eq!(big_int.value(), num);
+        }
+    }
+
+    #[test]
+    fn test_bigint_value() {
+        let seven = BigInt {
+            base: 10,
+            powers: vec![7],
+        };
+
+        assert_eq!(seven.value(), 7);
+
+        let twenty_seven = BigInt {
+            base: 10,
+            powers: vec![2, 7],
+        };
+
+        assert_eq!(twenty_seven.value(), 27);
+
+        let three_hundred_seven = BigInt {
+            base: 10,
+            powers: vec![3, 0, 7],
+        };
+
+        assert_eq!(three_hundred_seven.value(), 307);
+    }
 
     #[test]
     fn test_int_zero() {
