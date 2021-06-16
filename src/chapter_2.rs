@@ -26,15 +26,15 @@ impl Number for Int {
 
 struct BigInt {
     #[allow(dead_code)]
-    base: u32,
+    base: i32,
 
     #[allow(dead_code)]
-    powers: Vec<u32>,
+    powers: Vec<i32>,
 }
 
 impl BigInt {
     #[allow(dead_code)]
-    pub fn new(base: u32) -> Self {
+    pub fn new(base: i32) -> Self {
         BigInt {
             base,
             powers: vec![],
@@ -42,7 +42,7 @@ impl BigInt {
     }
 
     #[allow(dead_code)]
-    pub fn value(&self) -> u32 {
+    pub fn value(&self) -> i32 {
         self.powers
             .iter()
             .rev()
@@ -114,18 +114,39 @@ impl Number for BigInt {
         match self.powers.is_empty() {
             true => BigInt {
                 base: self.base.clone(),
-                powers: vec![],
+                powers: vec![0],
             },
             false => {
-                let mut new_powers = Vec::with_capacity(self.powers.len());
+                let mut new_powers = self.powers.clone();
 
-                for (index, num) in self.powers.iter().enumerate() {
-                    if num - 1 > 0 {
-                        new_powers.insert(index, num - 1)
-                    } else {
-                        new_powers.insert(index, 0);
-                        new_powers.insert(index + 1, self.base - 1)
+                for (index, num) in self.powers.iter().rev().enumerate() {
+                    // Edge case:
+                    if new_powers == vec![1] {
+                        new_powers = vec![0]
                     }
+
+                    if num - 1 >= 0 {
+                        new_powers[self.powers.len() - index - 1] = num - 1;
+                        break;
+                    } else {
+                        new_powers[self.powers.len() - index - 1] = self.base - 1;
+
+                        if self.powers.len() - index - 2 > 0 {
+                            let second_num = new_powers[self.powers.len() - index - 2];
+
+                            if second_num > 0 {
+                                new_powers[self.powers.len() - index - 2] = second_num - 1;
+                                break;
+                            } else {
+                                continue;
+                            }
+                        }
+                    }
+                }
+
+                // Get rid of extra powers
+                if new_powers.len() > 1 && new_powers[0] == 0 {
+                    let _ = new_powers.remove(0);
                 }
 
                 BigInt {
@@ -139,6 +160,8 @@ impl Number for BigInt {
 
 #[cfg(test)]
 mod tests {
+    use std::vec;
+
     use super::*;
 
     #[test]
@@ -152,6 +175,21 @@ mod tests {
     }
 
     #[test]
+    fn test_bigint_predecessor() {
+        let mut big_int = BigInt {
+            base: 10,
+            powers: vec![3, 0, 0],
+        };
+
+        for num in (0..300).rev() {
+            big_int = big_int.predecessor();
+            let value = big_int.value();
+
+            assert_eq!(big_int.value(), num);
+        }
+    }
+
+    #[test]
     fn test_bigint_successor() {
         let mut big_int = BigInt {
             base: 10,
@@ -161,10 +199,6 @@ mod tests {
         for num in 1..300 {
             big_int = big_int.successor();
             let value = big_int.value();
-            println!(
-                "value: {}, num: {}, powers: {:?}",
-                &value, &num, &big_int.powers
-            );
 
             assert_eq!(big_int.value(), num);
         }
