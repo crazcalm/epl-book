@@ -1,13 +1,35 @@
-trait Number {
+use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
+use std::ops::Add;
+
+pub trait Number {
+    fn value(&self) -> i32;
     fn zero(&self) -> Self;
     fn is_zero(&self) -> bool;
     fn successor(&self) -> Self;
     fn predecessor(&self) -> Self;
 }
 
+#[allow(dead_code)]
+pub fn fib<T: Number + std::fmt::Debug + std::ops::Add<Output = T> + PartialOrd>(
+    num: T,
+) -> <T as Add>::Output {
+    if num <= num.zero() {
+        num.zero()
+    } else if num == num.zero().successor() {
+        num.zero().successor()
+    } else {
+        let result = fib(num.predecessor()) + fib(num.predecessor().predecessor());
+        result
+    }
+}
+
 type Int = i32;
 
 impl Number for Int {
+    fn value(&self) -> i32 {
+        self.clone()
+    }
+
     fn zero(&self) -> Self {
         0
     }
@@ -24,6 +46,7 @@ impl Number for Int {
     }
 }
 
+#[derive(Debug, Clone)]
 struct BigInt {
     #[allow(dead_code)]
     base: i32,
@@ -40,9 +63,58 @@ impl BigInt {
             powers: vec![],
         }
     }
+}
 
-    #[allow(dead_code)]
-    pub fn value(&self) -> i32 {
+impl Eq for BigInt {}
+
+impl Ord for BigInt {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.value().cmp(&other.value())
+    }
+}
+
+impl PartialOrd for BigInt {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for BigInt {
+    fn eq(&self, other: &Self) -> bool {
+        self.value() == other.value()
+    }
+}
+
+impl Add for BigInt {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        let mut result: BigInt;
+        let mut counter: BigInt;
+
+        match self.base == other.base {
+            false => panic!("Incompatible bases"),
+            true => {
+                if self.value() > other.value() {
+                    result = self.clone();
+                    counter = other.clone();
+                } else {
+                    counter = self.clone();
+                    result = other.clone();
+                }
+                while counter.is_zero() == false {
+                    result = result.successor();
+                    counter = counter.predecessor();
+                }
+            }
+        }
+
+        result
+    }
+}
+
+impl Number for BigInt {
+    fn value(&self) -> i32 {
         self.powers
             .iter()
             .rev()
@@ -59,9 +131,7 @@ impl BigInt {
             })
             .fold(0, |sum, i| sum + i)
     }
-}
 
-impl Number for BigInt {
     fn zero(&self) -> Self {
         BigInt {
             base: 0,
@@ -165,6 +235,59 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_add_for_int() {
+        let one: Int = 1;
+        let two: Int = 2;
+        let three: Int = 3;
+
+        assert_eq!(one + two, three);
+    }
+
+    #[test]
+    fn test_add_for_big_int() {
+        let ten = BigInt {
+            base: 10,
+            powers: vec![1, 0],
+        };
+        let hundred = BigInt {
+            base: 10,
+            powers: vec![1, 0, 0],
+        };
+
+        let result = ten.clone() + hundred.clone();
+        assert_eq!(result.value(), 110);
+
+        let result = hundred.clone() + ten.clone();
+        assert_eq!(result.value(), 110);
+
+        let result = hundred.clone() + hundred.clone();
+        assert_eq!(result.value(), 200);
+    }
+
+    #[test]
+    fn test_fib_for_int() {
+        let ten: Int = 10;
+
+        let result = fib(ten);
+
+        assert_eq!(result, 55);
+    }
+
+    /*
+    #[test]
+    fn test_fib_for_big_int() {
+        let ten = BigInt {
+            base: 10,
+            powers: vec![1, 0],
+        };
+
+        let result = fib(ten);
+
+        assert_eq!(result.value(), 55);
+    }
+    */
+
+    #[test]
     fn test_bigint_is_zero() {
         let big_int = BigInt {
             base: 10,
@@ -183,7 +306,6 @@ mod tests {
 
         for num in (0..300).rev() {
             big_int = big_int.predecessor();
-            let value = big_int.value();
 
             assert_eq!(big_int.value(), num);
         }
@@ -198,7 +320,6 @@ mod tests {
 
         for num in 1..300 {
             big_int = big_int.successor();
-            let value = big_int.value();
 
             assert_eq!(big_int.value(), num);
         }
