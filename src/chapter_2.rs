@@ -8,6 +8,27 @@ pub trait Number {
     fn successor(&self) -> Self;
     fn predecessor(&self) -> Self;
 }
+#[allow(dead_code)]
+pub fn factorial<
+    T: Number
+        + std::fmt::Debug
+        + std::ops::Add<Output = T>
+        + PartialOrd
+        + Clone
+        + std::ops::Mul<Output = T>,
+>(
+    num: T,
+) -> <T as Add>::Output {
+    let mut result = num.clone();
+    let mut counter = num.clone().predecessor();
+
+    while counter.is_zero() == false {
+        result = counter.clone() * result;
+        counter = counter.predecessor();
+    }
+
+    result
+}
 
 #[allow(dead_code)]
 pub fn fib<T: Number + std::fmt::Debug + std::ops::Add<Output = T> + PartialOrd>(
@@ -17,6 +38,8 @@ pub fn fib<T: Number + std::fmt::Debug + std::ops::Add<Output = T> + PartialOrd>
         num.zero()
     } else if num == num.zero().successor() {
         num.zero().successor()
+    } else if num == num.zero().successor().successor() {
+        fib(num.predecessor()) + num.zero()
     } else {
         let result = fib(num.predecessor()) + fib(num.predecessor().predecessor());
         result
@@ -134,7 +157,7 @@ impl Number for BigInt {
 
     fn zero(&self) -> Self {
         BigInt {
-            base: 0,
+            base: 10,
             powers: vec![0],
         }
     }
@@ -273,7 +296,15 @@ mod tests {
         assert_eq!(result, 55);
     }
 
-    /*
+    #[test]
+    fn test_factorial_for_int() {
+        let ten: Int = 10;
+
+        let result = factorial(ten);
+
+        assert_eq!(result, 3628800);
+    }
+
     #[test]
     fn test_fib_for_big_int() {
         let ten = BigInt {
@@ -285,7 +316,6 @@ mod tests {
 
         assert_eq!(result.value(), 55);
     }
-    */
 
     #[test]
     fn test_bigint_is_zero() {
