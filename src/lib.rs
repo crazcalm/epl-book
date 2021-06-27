@@ -1,6 +1,7 @@
 mod chapter_1;
 mod chapter_2_1;
 mod chapter_2_2;
+mod chapter_2_3;
 mod cons;
 
 #[cfg(test)]
