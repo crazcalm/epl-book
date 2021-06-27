@@ -1,5 +1,4 @@
 pub trait NodeBasicMovement<T> {
-    fn current_element(&self) -> Option<&T>;
     fn move_to_left(&mut self);
     fn move_to_right(&mut self);
     fn insert_to_left(&mut self, item: T);
@@ -22,13 +21,13 @@ impl<T> NodeInSequence<T> {
             right_list: vec![],
         }
     }
+
+    pub fn current_element(&self) -> Option<&T> {
+        Some(&self.current_node)
+    }
 }
 
 impl<T: Clone> NodeBasicMovement<T> for NodeInSequence<T> {
-    fn current_element(&self) -> Option<&T> {
-        Some(&self.current_node)
-    }
-
     fn move_to_left(&mut self) {
         let temp = self.current_node.clone();
         self.right_list.insert(0, temp);
@@ -50,22 +49,6 @@ impl<T: Clone> NodeBasicMovement<T> for NodeInSequence<T> {
     fn insert_to_right(&mut self, item: T) {
         self.right_list.insert(0, item)
     }
-}
-
-#[derive(Debug)]
-struct Node<'a, T> {
-    value: T,
-    parent: Option<&'a BinaryTree<'a, T>>,
-}
-
-#[derive(Debug)]
-enum BinaryTree<'a, T> {
-    Leaf(Node<'a, T>),
-    Branch {
-        value: Node<'a, T>,
-        left: Box<BinaryTree<'a, T>>,
-        right: Box<BinaryTree<'a, T>>,
-    },
 }
 
 #[cfg(test)]

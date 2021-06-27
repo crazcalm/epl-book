@@ -1,3 +1,4 @@
+mod binary_tree;
 mod chapter_1;
 mod chapter_2_1;
 mod chapter_2_2;
