@@ -22,6 +22,7 @@ impl<T> NodeInSequence<T> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn current_element(&self) -> Option<&T> {
         Some(&self.current_node)
     }

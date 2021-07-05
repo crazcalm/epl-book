@@ -1,0 +1,14 @@
+WHITESPACE = _{" "}
+
+number = {ASCII_DIGIT+}
+ident = {ASCII_ALPHA ~ (ASCII_DIGIT | ASCII_ALPHA| "_")+}
+
+diff_exp = {"-" ~ "(" ~ (expression ~ "," ~ expression) ~ ")"}
+zero_exp = {"zero?" ~ "(" ~ expression ~ ")" }
+if_exp = {"if" ~ expression ~ "then" ~ expression ~ "else" ~ expression}
+let_exp = {"let" ~ ident ~ "=" ~ expression ~ "in" ~ expression}
+
+
+expression = {(let_exp | if_exp | zero_exp | number | ident | diff_exp)}
+
+a_program = {expression}

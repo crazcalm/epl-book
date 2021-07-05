@@ -1,5 +1,3 @@
-use std::ops::DerefMut;
-
 use crate::chapter_2_3::NodeBasicMovement;
 
 #[derive(Debug, Clone)]
@@ -28,6 +26,7 @@ pub struct MyBinaryTree<T> {
 }
 
 impl<T: Clone> MyBinaryTree<T> {
+    #[allow(dead_code)]
     pub fn new(value: T) -> Self {
         let tree = Some(Box::new(BTree {
             node: Node::new(value),
@@ -38,6 +37,7 @@ impl<T: Clone> MyBinaryTree<T> {
         MyBinaryTree { tree }
     }
 
+    #[allow(dead_code)]
     pub fn value(&self) -> Option<T> {
         match self.tree.clone() {
             None => None,

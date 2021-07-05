@@ -1,7 +1,4 @@
-use std::{
-    borrow::BorrowMut,
-    rc::{Rc, Weak},
-};
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 struct Node<T> {
@@ -29,6 +26,7 @@ pub struct MyBinaryTree<T> {
 }
 
 impl<T: Clone> MyBinaryTree<T> {
+    #[allow(dead_code)]
     pub fn new(value: T) -> Self {
         let tree = Some(Rc::new(BTree {
             node: Node::new(value),
@@ -39,6 +37,7 @@ impl<T: Clone> MyBinaryTree<T> {
         MyBinaryTree { tree }
     }
 
+    #[allow(dead_code)]
     pub fn value(&self) -> Option<T> {
         match self.tree.clone() {
             None => None,
@@ -47,7 +46,7 @@ impl<T: Clone> MyBinaryTree<T> {
     }
 
     pub fn insert_to_left(&mut self, value: T) -> Self {
-        let mut tree = self.tree.clone().unwrap();
+        let tree = self.tree.clone().unwrap();
         let new_left = BTree {
             node: Node::new(value),
             left: tree.left.clone(),
@@ -64,7 +63,7 @@ impl<T: Clone> MyBinaryTree<T> {
     }
 
     pub fn insert_to_right(&mut self, value: T) -> Self {
-        let mut tree = self.tree.clone().unwrap();
+        let tree = self.tree.clone().unwrap();
         let new_right = BTree {
             node: Node::new(value),
             right: tree.right.clone(),
