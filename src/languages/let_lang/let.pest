@@ -1,7 +1,7 @@
 WHITESPACE = _{" "}
 
 number = {ASCII_DIGIT+}
-ident = {ASCII_ALPHA ~ (ASCII_DIGIT | ASCII_ALPHA| "_")+}
+ident = {ASCII_ALPHA ~ (ASCII_DIGIT | ASCII_ALPHA| "_")*}
 
 diff_exp = {"-" ~ "(" ~ (expression ~ "," ~ expression) ~ ")"}
 zero_exp = {"zero?" ~ "(" ~ expression ~ ")" }
