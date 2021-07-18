@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-type Stack<T> = Vec<T>;
+pub type Stack<T> = Vec<T>;
 
 pub trait BasicStack<T> {
     fn empty_stack() -> Self;
